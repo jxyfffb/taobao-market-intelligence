@@ -1,0 +1,29 @@
+{
+  "result": {
+    "keyword": "苹果15手机壳",
+    "type": "all",
+    "count": 2,
+    "products": [
+      {
+        "image": "https://img.example.com/739189137255.jpg",
+        "productUrl": "https://detail.tmall.com/item.htm?id=739189137255",
+        "itemId": "739189137255",
+        "skuId": "5102288369848",
+        "title": "适用苹果15手机壳透明防摔款",
+        "shopUrl": "https://store.taobao.com/example-one",
+        "shopName": "佰蓝旗舰店",
+        "price": "8.9"
+      },
+      {
+        "image": "https://img.example.com/812345678901.jpg",
+        "productUrl": "https://item.taobao.com/item.htm?id=812345678901",
+        "itemId": "812345678901",
+        "skuId": "5200000000001",
+        "title": "苹果15手机壳磁吸支架款",
+        "shopUrl": "https://store.taobao.com/example-two",
+        "shopName": "示例数码店",
+        "price": "19.8"
+      }
+    ]
+  }
+}

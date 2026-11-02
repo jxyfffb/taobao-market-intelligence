@@ -1,0 +1,55 @@
+# ===== 本地数据与运行时产物（绝不提交）=====
+.local-data/
+exports/
+output/
+outputs/
+work/
+*.sqlite3
+*.db
+*.log
+.server-stdout.log
+.server-stderr.log
+server*.log
+
+# ===== 构建产物 =====
+build/
+dist/
+release/
+*.spec.bak
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ===== 工具与编辑器 =====
+.gstack/
+.playwright-cli/
+.workbuddy/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# ===== 商业版私有模块（开源仓库不含）=====
+src/license_client.py
+src/license_public_key.py
+src/development_entitlement.py
+tests/test_license_client.py
+tests/test_taobao_market_license_issuer.py
+work/private_crm_license/
+
+# ===== 商业打包脚本（含安装器标识与签名配置）=====
+packaging/
+scripts/build-release.ps1
+
+# ===== 开发过程笔记 =====
+findings.md
+progress.md
+task_plan.md
+tasks/
+灵感暂存器.md

@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>淘宝选品与竞品情报操作台</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23214d37'/%3E%3Cpath d='M18 21h28v7H35v18h-7V28H18z' fill='%23f59a55'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/styles.css?v=20261102-open-source-v1">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand-mark" aria-label="淘宝选品与竞品情报操作台">
+        <span class="brand-symbol">T</span>
+        <div>
+          <strong>选品情报台</strong>
+          <span>数据只保存在本机</span>
+        </div>
+      </div>
+
+      <nav class="primary-navigation" aria-label="操作台主导航">
+        <a class="nav-item active" href="#search-workspace" aria-current="page">
+          <span>市场搜索</span>
+        </a>
+        <a class="nav-item" href="#competitor-workspace">
+          <span>竞品采集</span>
+        </a>
+        <a class="nav-item" href="#monitor-workspace">
+          <span>监控中心</span>
+        </a>
+        <a class="nav-item" href="#settings-workspace">
+          <span>设置</span>
+        </a>
+      </nav>
+
+      <section class="sidebar-projects" aria-labelledby="recent-title">
+        <div class="sidebar-section-heading">
+          <h2 id="recent-title">搜索历史</h2>
+          <button id="refresh-projects" class="text-button" type="button">刷新</button>
+        </div>
+        <ul id="project-list" class="project-list"></ul>
+        <p id="empty-projects" class="empty-state">还没有搜索记录</p>
+      </section>
+
+      <div class="local-status">
+        <span aria-hidden="true"></span>
+        本机运行 · 数据永久保存
+      </div>
+    </aside>
+
+    <main class="app-main">
+      <header class="page-header">
+        <div>
+          <p id="page-eyebrow" class="eyebrow">淘宝市场采集</p>
+          <h1 id="page-title">采集市场数据</h1>
+          <p id="page-subtitle" class="subtitle">输入关键词直接采集，历史结果自动保存。</p>
+        </div>
+      </header>
+
+      <section id="search-launcher" class="create-strip search-launcher" aria-labelledby="create-title">
+        <div class="create-copy">
+          <span class="section-number">搜索</span>
+          <div>
+            <h2 id="create-title">输入关键词，直接采集</h2>
+            <p>重复关键词会继续保存到原来的搜索历史。</p>
+          </div>
+        </div>
+        <form id="project-form">
+          <label class="visually-hidden" for="keyword">淘宝/天猫关键词</label>
+          <div class="form-row">
+            <input id="keyword" name="keyword" maxlength="100" placeholder="输入淘宝/天猫关键词，例如：苹果15手机壳" required>
+            <button id="search-submit" type="submit">开始搜索</button>
+          </div>
+          <p id="form-message" class="message" role="alert"></p>
+          <div id="capture-progress" class="capture-progress" hidden>
+            <div class="capture-progress-copy">
+              <strong id="capture-progress-label">正在连接淘宝客户端</strong>
+              <span id="capture-elapsed">已等待 0 秒</span>
+            </div>
+            <div class="capture-progress-track" aria-hidden="true"><span></span></div>
+          </div>
+          <p id="search-message" class="search-message" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section id="search-workspace" class="workspace-stage" aria-label="市场搜索工作区">
+        <div id="workspace-guide" class="empty-workspace-copy workspace-guide">
+          <span>第一次用？三步就能跑起来</span>
+          <ol class="guide-steps">
+            <li><strong>登录淘宝</strong>：采集时会弹出专属浏览器，扫码登录一次即可，登录状态只留在本机。</li>
+            <li><strong>搜一个关键词</strong>：在上方输入框输入关键词，商品会逐条出现在下方，可导出 XLSX。</li>
+            <li><strong>粘一个竞品链接</strong>：去「竞品采集」粘贴商品链接或整段分享内容，保存完整资料包。</li>
+          </ol>
+          <div class="guide-actions">
+            <button id="guide-go-competitor" class="secondary" type="button">去采集竞品</button>
+            <button id="guide-go-monitor" class="text-button" type="button">查看监控中心</button>
+          </div>
+        </div>
+
+        <section id="opened-project" class="workspace" hidden>
+          <div class="workspace-heading">
+            <div>
+              <p class="eyebrow">当前关键词</p>
+              <h2 id="opened-keyword"></h2>
+              <p id="opened-created-at" class="muted"></p>
+            </div>
+            <span class="asset-badge">数据自动保存</span>
+          </div>
+
+          <nav class="workspace-navigation" aria-label="当前项目页内导航">
+            <a href="#results-section">商品列表</a>
+            <a href="#history-section">历史与变化</a>
+          </nav>
+
+          <section id="results-section" class="results-section" aria-labelledby="results-title">
+            <div class="results-heading">
+              <div>
+                <p class="eyebrow">本次结果</p>
+                <h3 id="results-title">搜索商品</h3>
+              </div>
+              <div class="results-actions">
+                <p id="results-summary" class="results-summary">尚未搜索</p>
+                <span id="capture-page-summary" class="capture-page-summary" hidden></span>
+                <button id="capture-next-page" class="capture-next-page" type="button" hidden>采集下一页</button>
+                <label id="monitor-page-control" class="monitor-page-control" hidden>
+                  <span>每日采集</span>
+                  <select id="monitor-page-count" aria-label="关键词每日监控页数">
+                    <option value="1" selected>1 页</option>
+                    <option value="2">2 页</option>
+                    <option value="3">3 页</option>
+                  </select>
+                </label>
+                <button id="monitor-keyword" class="secondary" type="button" hidden>加入每日监控</button>
+                <button id="export-snapshot" type="button" hidden>导出 XLSX</button>
+              </div>
+            </div>
+            <form id="result-filters" class="result-filters" hidden>
+              <label class="result-search-field">
+                <span>结果内搜索</span>
+                <input id="result-query" type="search" placeholder="标题或店铺" autocomplete="off">
+              </label>
+              <fieldset class="price-range-filter">
+                <legend>价格区间</legend>
+                <input id="minimum-price" type="number" min="0" step="0.01" inputmode="decimal" placeholder="最低价" aria-label="最低价">
+                <span>—</span>
+                <input id="maximum-price" type="number" min="0" step="0.01" inputmode="decimal" placeholder="最高价" aria-label="最高价">
+              </fieldset>
+              <label>
+                <span>平台</span>
+                <select id="platform-filter">
+                  <option value="all">全部平台</option>
+                  <option value="taobao">淘宝</option>
+                  <option value="tmall">天猫</option>
+                  <option value="unknown">未识别</option>
+                </select>
+              </label>
+              <label>
+                <span>排序</span>
+                <select id="result-sort">
+                  <option value="rank">默认排名</option>
+                  <option value="price-ascending">价格从低到高</option>
+                  <option value="price-descending">价格从高到低</option>
+                </select>
+              </label>
+              <button id="clear-filters" class="filter-clear" type="button">清除筛选</button>
+              <p id="filtered-results-summary" class="filtered-results-summary"></p>
+            </form>
+            <div class="product-table-shell">
+              <table class="product-table">
+                <thead>
+                  <tr>
+                    <th scope="col">排名</th>
+                    <th scope="col">主图</th>
+                    <th scope="col">商品</th>
+                    <th scope="col">店铺</th>
+                    <th scope="col">平台</th>
+                    <th scope="col" class="numeric-column">价格</th>
+                    <th scope="col">操作</th>
+                  </tr>
+                </thead>
+                <tbody id="product-results"></tbody>
+              </table>
+            </div>
+            <nav id="result-pagination" class="result-pagination" aria-label="已采集结果分页" hidden></nav>
+            <p id="empty-results" class="empty-state result-empty">开始搜索后，商品会在这里逐条出现。</p>
+            <section id="price-distribution" class="price-distribution" aria-labelledby="price-distribution-title" hidden>
+              <header class="price-distribution-heading">
+                <div>
+                  <p class="eyebrow">全量搜索结果 · 数据处理</p>
+                  <h4 id="price-distribution-title">搜索展示价 × 页面付款热度</h4>
+                  <p>横向看价格从低到高，纵向看页面显示的付款热度；每个点代表一个商品。</p>
+                </div>
+                <p id="price-distribution-time" class="price-distribution-time"></p>
+              </header>
+              <div id="price-distribution-metrics" class="price-distribution-metrics"></div>
+              <div class="price-distribution-chart-shell">
+                <div id="price-distribution-chart" class="price-distribution-chart" role="img" aria-label="搜索展示价与页面付款热度散点图"></div>
+                <div class="price-distribution-legend" aria-label="图例">
+                  <span><i class="legend-dot"></i>付款热度已采集</span>
+                  <span><i class="legend-dot missing"></i>付款热度缺失</span>
+                  <span><i class="legend-band"></i>主流价格带</span>
+                </div>
+              </div>
+              <div id="distribution-selection" class="distribution-selection" hidden>
+                <span id="distribution-selection-copy"></span>
+                <button id="clear-distribution-selection" type="button">查看全部商品</button>
+              </div>
+              <div class="price-distribution-lower">
+                <section class="same-price-panel" aria-labelledby="same-price-title">
+                  <div class="distribution-subheading">
+                    <h5 id="same-price-title">同价集中点</h5>
+                    <span>区分商品数 / 店铺数</span>
+                  </div>
+                  <div id="same-price-groups" class="same-price-groups"></div>
+                </section>
+                <section class="distribution-conclusion" aria-labelledby="distribution-conclusion-title">
+                  <div class="distribution-subheading">
+                    <h5 id="distribution-conclusion-title">快速结论</h5>
+                    <span>按当前快照自动计算</span>
+                  </div>
+                  <ul id="distribution-conclusions"></ul>
+                </section>
+              </div>
+              <p class="distribution-warning">注意：这里使用搜索页展示价和页面付款热度，不等同于同规格到手价或准确销量；规格、重量、赠品不同的商品需进一步核对。</p>
+            </section>
+            <aside id="image-preview" class="image-preview" aria-label="商品主图预览" hidden>
+              <img id="image-preview-picture" alt="">
+              <div>
+                <p id="image-preview-title"></p>
+                <a id="image-preview-download" href="#">保存主图</a>
+              </div>
+            </aside>
+          </section>
+
+          <section id="history-section" class="history-section" aria-labelledby="history-title">
+            <details id="history-disclosure" class="history-disclosure">
+              <summary class="history-heading">
+                <span>
+                  <span class="eyebrow">历史记录</span>
+                  <strong id="history-title">搜索历史与变化</strong>
+                </span>
+                <span class="history-summary-status">
+                  <span id="history-message" class="results-summary">尚无历史记录</span>
+                  <span class="history-summary-action">
+                    <span class="history-action-closed">查看变化</span>
+                    <span class="history-action-open">收起</span>
+                  </span>
+                </span>
+              </summary>
+              <div class="history-content">
+                <ul id="history-list" class="history-list"></ul>
+                <div class="diff-console">
+                  <label for="older-snapshot">基准记录</label>
+                  <select id="older-snapshot"></select>
+                  <span class="diff-arrow" aria-hidden="true">→</span>
+                  <label for="newer-snapshot">对比记录</label>
+                  <select id="newer-snapshot"></select>
+                  <button id="compare-snapshots" class="secondary" type="button" disabled>比较变化</button>
+                </div>
+                <div id="diff-results" class="diff-results" aria-live="polite"></div>
+              </div>
+            </details>
+          </section>
+        </section>
+      </section>
+
+      <section id="competitor-workspace" class="competitor-workspace" aria-labelledby="competitor-title" hidden>
+        <div class="competitor-heading">
+          <div>
+            <p class="eyebrow">淘宝/天猫单品资料</p>
+            <h2 id="competitor-title">竞品采集</h2>
+            <p>直接粘贴完整链接、分享短链或整段分享内容，资料会自动保存到本机。</p>
+          </div>
+        </div>
+
+        <form id="competitor-url-form" class="competitor-intake">
+          <div>
+            <label for="competitor-url">粘贴竞品链接，直接采集</label>
+            <p>支持淘宝/天猫商品长链接、官方分享短链和包含文案的整段分享内容。</p>
+          </div>
+          <div class="competitor-url-row">
+            <input id="competitor-url" type="text" autocomplete="off" placeholder="粘贴商品链接或整段分享内容" required>
+            <button id="prepare-competitor" type="submit">识别并采集</button>
+          </div>
+        </form>
+        <p id="competitor-message" class="competitor-message" role="status" aria-live="polite">粘贴一个竞品链接开始采集。</p>
+
+        <aside id="competitor-login-help" class="competitor-login-help" hidden>
+          <div>
+            <strong>需要先登录淘宝</strong>
+            <p>请在弹出的专属采集浏览器中扫码登录。登录状态只保存在本机，不会上传账号或 Cookie。</p>
+          </div>
+          <div class="competitor-login-actions">
+            <button id="reopen-collector-browser" class="secondary" type="button">重新打开登录页</button>
+            <button id="resume-competitor-capture" type="button">登录完成，继续采集</button>
+          </div>
+        </aside>
+
+        <aside class="collector-account-card" aria-label="采集账号管理">
+          <div>
+            <strong>采集账号</strong>
+            <p>登录状态仅保存在本工具的专属浏览器中。扫错账号时，可先打开淘宝官方账号页切换；仍无法切换再清除本工具登录状态。</p>
+          </div>
+          <div class="collector-account-actions">
+            <button id="open-collector-account" class="secondary" type="button">打开采集账号</button>
+            <button id="clear-collector-login" class="text-button danger" type="button">清除本工具登录状态</button>
+          </div>
+        </aside>
+
+        <section id="competitor-records-section" class="competitor-records-section" aria-labelledby="competitor-records-title">
+          <header class="competitor-records-heading">
+            <div>
+              <p class="eyebrow">本机永久保存</p>
+              <h3 id="competitor-records-title">已采集竞品</h3>
+            </div>
+            <div class="competitor-records-tools">
+              <span id="competitor-record-count" class="asset-badge">0 项</span>
+              <button id="refresh-competitor-records" class="secondary" type="button">刷新</button>
+            </div>
+          </header>
+          <div class="competitor-record-table-shell">
+            <table class="competitor-record-table">
+              <thead>
+                <tr>
+                  <th scope="col">主图</th>
+                  <th scope="col">商品与店铺</th>
+                  <th scope="col">价格</th>
+                  <th scope="col">最近采集</th>
+                  <th scope="col">采集次数</th>
+                  <th scope="col">操作</th>
+                </tr>
+              </thead>
+              <tbody id="competitor-record-list"></tbody>
+            </table>
+          </div>
+          <p id="competitor-record-empty" class="empty-state">还没有采集过竞品，先在上方粘贴一个商品链接。</p>
+        </section>
+
+        <section id="competitor-detail" class="competitor-detail" hidden>
+          <button id="back-to-results" class="back-button" type="button">← 返回竞品记录</button>
+          <div id="competitor-command-bar" class="competitor-command-bar" hidden>
+            <div>
+              <span>竞品资料已保存</span>
+              <strong id="competitor-command-summary">可以重新采集或导出完整资料包</strong>
+            </div>
+            <div class="competitor-command-actions">
+              <button id="monitor-competitor" class="secondary" type="button">加入每日监控</button>
+              <button id="export-competitor-package" type="button">导出竞品资料包 ZIP</button>
+            </div>
+          </div>
+
+          <section id="competitor-archive" class="competitor-product-archive" hidden></section>
+
+          <form id="competitor-sku-form" class="competitor-sku-form" hidden>
+            <div class="capture-ticket">
+              <span>采集进度</span>
+              <strong id="competitor-capture-status">资料已保存</strong>
+              <p id="competitor-capture-title"></p>
+            </div>
+            <details class="sku-advanced">
+              <summary>需要精确到某个规格的价格？（可选，不影响资料包）</summary>
+              <div id="competitor-sku-fields" class="competitor-sku-fields"></div>
+              <button id="capture-competitor-sku" class="secondary" type="submit">读取该规格实价</button>
+              <p class="sku-boundary">不选规格也能直接导出资料包，主图、SKU 图、详情图、评价和问大家都会包含在内。</p>
+            </details>
+          </form>
+        </section>
+      </section>
+
+      <section id="monitor-workspace" class="settings-workspace monitor-workspace" aria-labelledby="monitor-title" hidden>
+        <header class="settings-heading">
+          <div>
+            <p class="eyebrow">本机稳定监控</p>
+            <h2 id="monitor-title">监控中心</h2>
+            <p>电脑开机且已登录淘宝时按计划采集；错过执行时间会在下次开机登录后补跑。</p>
+          </div>
+          <button id="run-monitor-now" class="secondary" type="button">立即执行一次</button>
+        </header>
+        <form id="monitor-schedule-form" class="monitor-schedule-form">
+          <label>
+            <span>每天执行时间</span>
+            <input id="monitor-run-time" type="time" value="10:00" required>
+          </label>
+          <label class="monitor-switch">
+            <input id="monitor-enabled" type="checkbox">
+            <span>启用每日监控</span>
+          </label>
+          <button id="save-monitor-schedule" type="submit">保存定时设置</button>
+        </form>
+        <p id="monitor-message" class="message" role="status" aria-live="polite"></p>
+        <section class="monitor-change-panel" aria-labelledby="monitor-change-title">
+          <div class="monitor-panel-heading">
+            <div>
+              <p class="eyebrow">变化雷达</p>
+              <h3 id="monitor-change-title">今日重要变化</h3>
+              <p id="monitor-change-meta" class="monitor-change-meta">今天尚未执行监控。</p>
+            </div>
+            <span id="monitor-change-count" class="monitor-change-count">0 条</span>
+          </div>
+          <ul id="monitor-change-list" class="monitor-change-list"></ul>
+          <div id="monitor-change-empty" class="monitor-change-empty">
+            <strong>今日未发现值得关注的变化</strong>
+            <span>小幅排名和价格波动会自动过滤，不打扰日常判断。</span>
+          </div>
+        </section>
+        <section id="monitor-keyword-panel" class="monitor-panel monitor-keyword-panel">
+          <div class="monitor-panel-heading">
+            <div>
+              <p class="eyebrow">市场范围</p>
+              <h3>关键词监控</h3>
+            </div>
+            <span id="monitor-keyword-count" class="asset-badge">0 项</span>
+          </div>
+          <ul id="monitor-keyword-list" class="monitor-list monitor-keyword-list"></ul>
+          <p id="monitor-keyword-empty" class="empty-state">还没有加入关键词监控。</p>
+        </section>
+        <div class="monitor-grid monitor-object-grid">
+          <section class="monitor-panel monitor-competitor-panel">
+            <div class="monitor-panel-heading">
+              <div>
+                <p class="eyebrow">同品价盘</p>
+                <h3>同产品 / 分销价格监控</h3>
+                <p class="monitor-scope-copy">同款与分销链接按可比 SKU 分开看价；未确认规格一致时不合并比较。</p>
+              </div>
+              <span id="monitor-competitor-count" class="asset-badge">0 项</span>
+            </div>
+            <ul id="monitor-competitor-list" class="monitor-list"></ul>
+            <p id="monitor-competitor-empty" class="empty-state">先在商品列表或竞品采集页点击“监控单品”。</p>
+          </section>
+          <section class="monitor-panel monitor-shop-panel">
+            <div class="monitor-panel-heading">
+              <div>
+                <p class="eyebrow">竞店动态</p>
+                <h3>实际竞店观察</h3>
+                <p class="monitor-scope-copy">跟踪店铺上新、下架与商品结构变化，不用全店平均价代替真实调价。</p>
+              </div>
+              <span id="monitor-shop-count" class="asset-badge">0 项</span>
+            </div>
+            <form id="manual-shop-monitor-form" class="shop-monitor-form">
+              <label for="manual-shop-url">淘宝/天猫店铺链接</label>
+              <div class="shop-monitor-entry">
+                <input id="manual-shop-url" type="url" required placeholder="粘贴店铺“全部宝贝”或 category.htm 链接">
+                <button id="add-manual-shop-monitor" type="submit">添加并采集</button>
+              </div>
+              <p id="manual-shop-message" class="shop-monitor-message" role="status" aria-live="polite"></p>
+            </form>
+            <ul id="monitor-shop-list" class="monitor-list monitor-shop-list"></ul>
+            <p id="monitor-shop-empty" class="empty-state">从商品列表点击“监控店铺”，建立店铺商品基线。</p>
+          </section>
+        </div>
+        <section class="monitor-panel monitor-run-panel">
+          <div class="monitor-panel-heading">
+            <div>
+              <p class="eyebrow">执行记录</p>
+              <h3>最近运行</h3>
+            </div>
+          </div>
+          <ul id="monitor-run-list" class="monitor-list monitor-run-list"></ul>
+          <p id="monitor-run-empty" class="empty-state">还没有执行记录。</p>
+        </section>
+        <p class="monitor-boundary">稳定性说明：登录失效或淘宝要求验证时，本次会记录失败并停止，不会自动高频重试。</p>
+      </section>
+
+      <section id="settings-workspace" class="settings-workspace" aria-labelledby="settings-title" hidden>
+        <header class="settings-heading">
+          <div>
+            <p class="eyebrow">本机设置</p>
+            <h2 id="settings-title">设置</h2>
+            <p>管理软件激活和模型接入；授权码与 Key 都只保存在本机。</p>
+          </div>
+          <span class="asset-badge">本机离线授权</span>
+        </header>
+        <section id="license-settings-card" class="settings-card license-settings-card" aria-labelledby="license-settings-title">
+          <div class="license-settings-head">
+            <div>
+              <span class="license-status-kicker">软件授权</span>
+              <h3 id="license-settings-title">淘宝选品与竞品情报操作台</h3>
+              <p id="license-status-message">正在读取本机授权状态…</p>
+            </div>
+            <span id="license-status-badge" class="license-status-badge">读取中</span>
+          </div>
+          <div class="license-status-grid">
+            <div><span>当前套餐</span><strong id="license-plan-label">—</strong></div>
+            <div><span>到期时间</span><strong id="license-expires-at">—</strong></div>
+            <div><span>剩余时间</span><strong id="license-remaining-days">—</strong></div>
+            <div><span>设备尾号</span><strong id="license-device-suffix">—</strong></div>
+          </div>
+          <div id="license-activation-block">
+            <label class="license-code-field" for="license-request-code">
+              <span id="license-request-label">设备申请码</span>
+              <textarea id="license-request-code" readonly placeholder="正在生成本机申请码"></textarea>
+            </label>
+            <div class="settings-actions license-copy-actions">
+              <button id="copy-license-request" class="secondary" type="button">复制申请码</button>
+            </div>
+            <label class="license-code-field" for="license-activation-code">
+              <span>管理员返回的激活码</span>
+              <textarea id="license-activation-code" placeholder="粘贴 OL1 开头的完整激活码"></textarea>
+            </label>
+            <div class="settings-actions">
+              <button id="submit-license-code" type="button">提交激活码</button>
+              <button id="refresh-license-status" class="secondary" type="button">刷新状态</button>
+            </div>
+          </div>
+          <p id="license-settings-message" class="settings-message" role="status" aria-live="polite">未激活或到期后仍可查看、删除和导出历史资料。</p>
+        </section>
+        <form id="ai-settings-form" class="settings-card">
+          <fieldset class="provider-picker">
+            <legend>选择模型服务</legend>
+            <div id="ai-provider-options" class="provider-options" aria-live="polite"></div>
+          </fieldset>
+          <input id="ai-preset-id" type="hidden" value="volcengine-ark">
+          <label class="api-key-field" for="ai-api-key">
+            <span id="ai-key-label">火山方舟 API Key</span>
+            <input id="ai-api-key" type="password" autocomplete="off" placeholder="粘贴火山方舟 API Key">
+            <small>接口地址和模型由系统自动匹配；Key 使用 Windows 当前用户加密保存。</small>
+          </label>
+          <div id="ai-save-status" class="ai-save-status" role="status" hidden>
+            <span class="ai-save-status-icon" aria-hidden="true">✓</span>
+            <span class="ai-save-status-copy">
+              <strong id="ai-save-provider">模型已接入</strong>
+              <small>API Key 已安全保存在本机</small>
+            </span>
+          </div>
+          <div class="settings-actions">
+            <button id="save-ai-settings" type="submit">保存并接入</button>
+            <button id="test-ai-settings" class="secondary" type="button" disabled>测试模型能力</button>
+          </div>
+          <p id="ai-settings-message" class="settings-message" role="status" aria-live="polite">基础采集和统计不依赖模型。</p>
+        </form>
+      </section>
+    </main>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden>
+    <span id="toast-text"></span>
+    <button id="toast-action" class="toast-action" type="button" hidden></button>
+    <button id="toast-close" class="toast-close" type="button" aria-label="关闭提示">×</button>
+  </div>
+  <script src="/static/app.js?v=20261102-open-source-v1" defer></script>
+</body>
+</html>
